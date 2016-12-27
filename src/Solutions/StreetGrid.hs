@@ -9,6 +9,8 @@ import Text.Parsec.String (Parser)
 import Text.Parsec.Char (oneOf, digit)
 import Text.Parsec (many1, parse, sepBy, skipMany, space, char)
 
+type Point = (Int, Int)
+
 data Direction = N | S | E | W
     deriving (Eq, Show)
 
@@ -49,24 +51,22 @@ streetGridB = do
 
 stepB :: PathB -> [Instruction] -> PathB
 stepB p [] = p
-stepB p ((L n):rest) = let 
-    (b, x) = case facingB p of
-            N -> (False, p {facingB= W, eastB= (eastB p) - n})
-            E -> (True, p {facingB= N, northB= (northB p) + n})
-            S -> (False, p {facingB= E, eastB= (eastB p) + n})
-            W -> (True, p {facingB= S, northB= (northB p) - n})
-    (crossed, p') = computeVisited p x (northB p /= northB x)
+stepB p (i:rest) = let 
+    x = rotationF i (facingB p) p
+    verticalChange = northB p /= northB x
+    (crossed, p') = computeVisited p x verticalChange
     x' = x {visited = visited p'}
     in if crossed then p' else stepB x' rest
-stepB p ((R n):rest) = let
-    x = case facingB p of
-            N -> p {facingB= E, eastB= (eastB p) + n}
-            E -> p {facingB= S, northB= (northB p) - n}
-            S -> p {facingB= W, eastB= (eastB p) - n}
-            W -> p {facingB= N, northB= (northB p) + n}
-    (crossed, p') = computeVisited p x (northB p /= northB x)
-    x' = x {visited = visited p'}
-    in if crossed then p' else stepB x' rest
+
+rotationF :: Instruction -> Direction -> PathB -> PathB
+rotationF (R n) N p = p {facingB= E, eastB=  eastB p + n }
+rotationF (R n) E p = p {facingB= S, northB= northB p - n}
+rotationF (R n) S p = p {facingB=W, eastB= eastB p - n}
+rotationF (R n) W p = p {facingB=N, northB= northB p + n}
+rotationF (L n) N p = p {facingB= W, eastB= eastB p - n}
+rotationF (L n) E p = p {facingB= N, northB= northB p + n}
+rotationF (L n) S p = p {facingB= E, eastB= eastB p + n}
+rotationF (L n) W p = p {facingB= S, northB= northB p - n}
 
 computeVisited :: PathB -> PathB -> Bool -> (Bool, PathB)
 computeVisited start end vertical = let
@@ -83,7 +83,7 @@ computeVisited start end vertical = let
     run :: PathB -> [(Int, Int)] -> (Bool, PathB)
     run p [] = (False, p)
     run p@(PathB {..}) (x:rest) =
-        if elem x visited
+        if elem x visited -- could use a set here
         then (True, p {northB = fst x, eastB = snd x})
         else run (p {visited = x:visited }) rest
 
