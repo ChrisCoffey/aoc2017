@@ -21,6 +21,7 @@ library
                      , Solutions.ThreeSidedSquares
                      , Solutions.DecoyRooms
                      , Solutions.Chess
+                     , Solutions.SignalsNoise
   build-depends:       base >= 4.7 && < 5
                      , parsec >= 3.1.11
                      , text >= 1.2.2.1
