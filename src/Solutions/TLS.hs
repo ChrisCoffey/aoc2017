@@ -5,6 +5,8 @@ module Solutions.TLS (
 
 import qualified Data.Set as S
 
+import Debug.Trace
+
 abbA :: IO ()
 abbA = do
     ls <- lines <$> readFile "data/TLS.txt"
@@ -28,7 +30,10 @@ isAbba (a:b:c:d:rest) found inBraces
     matches = a == d && b == c && a /= b
    
 isAba :: String -> Bool
-isAba s = not . null $ supers s `S.intersection` hypers s
+isAba s = let 
+    a = supers s
+    b = hypers (dropWhile (/= '[') s)
+    in not . null $ (trace (show a) a) `S.intersection` (trace (show b) b)
 
 supers :: String -> S.Set String
 supers [a,b] = S.empty

@@ -31,7 +31,7 @@ hashLoopB' = go 1 (A.array (0, 7) ([0..7] `zip` repeat 'z'))
         | otherwise = arr
     go :: Int -> A.Array Int Char -> A.Array Int Char
     go n arr 
-        | notElem 'z' arr =  arr
+        | 'z' `notElem` arr =  arr
         | otherwise = let
             hash = h n
             i = fst . head $ readHex [hash !! 5]
@@ -39,7 +39,6 @@ hashLoopB' = go 1 (A.array (0, 7) ([0..7] `zip` repeat 'z'))
             in if startsWith "00000" hash && i <= 7
             then go (n + 1) (trySet arr i c)
             else go (n + 1) arr
-        
 
 startsWith :: String -> String -> Bool
 startsWith [] s = True
