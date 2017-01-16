@@ -25,6 +25,8 @@ library
                      , Solutions.TLS
                      , Solutions.TwoFA
                      , Solutions.Decompressor
+                     , Solutions.Quadcopter
+                     , Solutions.RadioIsotope
   build-depends:       base >= 4.7 && < 5
                      , parsec >= 3.1.11
                      , text >= 1.2.2.1
