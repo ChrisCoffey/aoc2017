@@ -28,6 +28,9 @@ library
                      , Solutions.Quadcopter
 
                      , Solutions17.Day1
+                     , Solutions17.Day2
+                     , Solutions17.Day3
+                     , Solutions17.Day4
   build-depends:       base >= 4.7 && < 5
                      , parsec >= 3.1.11
                      , text >= 1.2.2.1
