@@ -1,8 +1,9 @@
 module Main where
 
-import Solutions
+import Solutions17.Day5
 
 main :: IO ()
 main = do
-    streetGridA
-    pure ()
+    res <- checkB
+    print res
+
