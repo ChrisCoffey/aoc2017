@@ -7,12 +7,19 @@ import qualified Data.Text as T
 import Text.Parsec
 import Text.Parsec.Char
 import Text.Parsec.String
+import Data.List (group, sort, sortBy, groupBy, nubBy, nub)
+import Data.Ord (comparing)
+import Data.Monoid ((<>))
 import qualified Data.Map as M
+import Data.Maybe (fromMaybe, maybe)
 
 data RoseTree =
     Node {name :: T.Text, weight:: Int, children:: [T.Text]}
     | Leaf {lName :: T.Text, lWeight :: Int}
     deriving (Show, Eq, Ord)
+
+data FullRoseTree = FullNode T.Text Int [FullRoseTree]
+    deriving Show
 
 loadTree :: IO [RoseTree]
 loadTree = do
@@ -42,7 +49,55 @@ buildNodeIndex = foldr (\ n m -> M.insert (nodeName n) n m) M.empty
 buildTree ::
     T.Text -- | Root node
     -> M.Map T.Text RoseTree
+    -> FullRoseTree
+buildTree root index =
+    FullNode root (w n) [buildTree c index | c <- cx]
+    where
+        n = index M.! root
+        cx = case M.lookup root index of
+            Just (Node {..}) -> children
+            _ -> []
+        w (Node {..}) = weight
+        w (Leaf {..}) = lWeight
 
+towerWeight ::
+    FullRoseTree
+    -> Int
+towerWeight (FullNode n w xs) =
+    w + sum (towerWeight <$> xs)
+
+unbalancedChildTower ::
+    FullRoseTree
+    -> Maybe FullRoseTree
+unbalancedChildTower (FullNode n w xs)
+    | (== 1) . length . nub $ towerWeight <$> xs = Nothing
+    | otherwise = Just .
+        head .
+        concat .
+        filter ((==) 1. length) .
+        fmap (nubBy eqByWeight) .
+        groupBy eqByWeight $
+        sortBy compByWeight xs
+    where
+        eqByWeight l r = towerWeight l == towerWeight r
+        compByWeight = comparing towerWeight
+
+findWrongWeight ::
+    FullRoseTree -- | root
+    -> FullRoseTree
+findWrongWeight r =
+    case unbalancedChildTower r of
+        Just n -> findWrongWeight n
+        Nothing -> r
+
+-- Helper
+showChildren ::
+    FullRoseTree
+    -> String
+showChildren (FullNode n w xs) =
+    T.unpack n <> " weight: " <> show w <> "  " <> (show $ showChild <$> xs)
+    where
+        showChild r@(FullNode n w _) = T.unpack n <> " weight: " <> show (towerWeight r) <> " w " <> show w
 
 findRoot ::
     T.Text
