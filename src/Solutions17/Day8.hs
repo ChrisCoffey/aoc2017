@@ -1,5 +1,8 @@
+{-# LANGUAGE FlexibleContexts #-}
 module Solutions17.Day8 where
 
+import Control.Monad (mapM_)
+import Control.Monad.State
 import Data.Maybe (fromMaybe)
 import Data.Foldable (foldl')
 import qualified Data.Map as M
@@ -124,7 +127,21 @@ checkA = do
     case parse pInstructions "Program" raw of
         Left e -> print e
         Right ixs -> do
-            print $ length ixs
             let m = foldl' evalInstruction M.empty ixs
                 res = maximum $ snd <$> M.toList m
             print res
+
+checkB :: IO ()
+checkB = do
+    raw <- readFile "data/2017/Day8.a"
+    case parse pInstructions "Program" raw of
+        Left e -> print e
+        Right ixs -> do
+            let (m, _) = execState (mapM_ runStep ixs) (0, M.empty)
+            print m
+    where
+        runStep i = do
+            (n, rx) <- get
+            let rx' = evalInstruction rx i
+                currMax = maximum $ snd <$> M.toList rx'
+            put (max n currMax, rx')
